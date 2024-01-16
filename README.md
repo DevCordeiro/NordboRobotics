@@ -1,4 +1,4 @@
-# Task Norbo Robotic - Images Transformation
+# Task Nordbo Robotic - Images Transformation
 
 This software performs resizing, cropping, and rotation of an image selected by the user. The user has the option to choose a specific command to transform the image, selecting the image and providing the dimensions required to create a new image. The newly transformed image will be displayed for visualization.
 
