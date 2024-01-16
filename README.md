@@ -46,4 +46,4 @@ python3 main.py
 
 ## Documentation
 
-The project includes comprehensive documentation that provides information on available commands, parameters, and how to get started. Refer to the documentation file for detailed instructions.
+The project includes comprehensive documentation that provides information on available commands, parameters, and how to get started. Refer to the User_Manual file for detailed instructions.
