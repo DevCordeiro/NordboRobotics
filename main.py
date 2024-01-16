@@ -33,7 +33,7 @@ def manipulate_image_args(image_name_args, resize_args, crop_args, rotate_args):
     image = Image.open(os.path.join(images_folder, image_name_args))
     image_resize_to_plot = resize_image(image, resize_args[0], resize_args[1])
     image_crop_to_plot = crop_image(image, crop_args[0], crop_args[1], crop_args[2], crop_args[3])
-    image_rotate_to_plot = rotation_image(image, rotate_args)
+    image_rotate_to_plot = rotate_image(image, rotate_args)
     plot_all_images(image, image_crop_to_plot, image_rotate_to_plot, image_resize_to_plot)
 
 
@@ -41,9 +41,8 @@ def run_friendly_user_interface():
     while True:
         clear_display()
         images_folder = search_images_name()
-
-        chosen_command = input("---------------------------- Welcome! ---------------------------- \n\n"
-                               "Enter with a command >>> ")
+        print("---------------------------- Welcome! ---------------------------- \n")
+        chosen_command = input("Enter with a command >>> ")
 
         if chosen_command.upper() == "EXIT":
             clear_display()
@@ -55,6 +54,7 @@ def run_friendly_user_interface():
         elif chosen_command.upper() == "HELP":
             show_help()
             continue
+
         elif (chosen_command.upper() != "CROP" and chosen_command.upper() != "ROTATE" and
                 chosen_command.upper() != "RESIZE" and chosen_command.upper() != "ALL"):
             clear_display()
@@ -63,16 +63,20 @@ def run_friendly_user_interface():
             continue
 
         name_image_user = input("\nEnter the name of the image (e.g., Image01.jpeg) >> ")
-
-        image = Image.open(os.path.join(images_folder, name_image_user))
-        # print("Dimensions of Image: ", image.size[0])
+        try:
+            image = Image.open(os.path.join(images_folder, name_image_user))
+        except FileNotFoundError:
+            clear_display()
+            print("IMAGE DOES NOT EXIST, PLEASE VERIFY THE IMAGE NAME\n")
+            input("Press Enter to back Welcome Display...")
+            continue
 
         if chosen_command.upper() == "CROP":
             image_crop_to_plot = crop_image(image, 0, 0, 0, 0)
             plot_image(image, image_crop_to_plot, "Cropped")
 
         elif chosen_command.upper() == "ROTATE":
-            image_rotate_to_plot = rotation_image(image, 0)
+            image_rotate_to_plot = rotate_image(image, 0)
             plot_image(image, image_rotate_to_plot, "Rotated")
 
         elif chosen_command.upper() == "RESIZE":
@@ -82,7 +86,7 @@ def run_friendly_user_interface():
         elif chosen_command.upper() == "ALL":
             image_resize_to_plot = resize_image(image, 0, 0)
             image_crop_to_plot = crop_image(image, 0, 0, 0, 0)
-            image_rotate_to_plot = rotation_image(image, 0)
+            image_rotate_to_plot = rotate_image(image, 0)
             plot_all_images(image, image_crop_to_plot, image_rotate_to_plot, image_resize_to_plot)
 
 
@@ -113,45 +117,47 @@ def resize_image(image_to_resize, new_width, new_height):
 
             if nearest_i == int(nearest_i) and nearest_j == int(nearest_j):
                 resized_image_matrix[i, j] = resize_img_matrix[int(nearest_i), int(nearest_j)]
+
             elif nearest_i == int(nearest_i):
-                nearest_i1, nearest_j1 = int(nearest_i), int(nearest_j)
-                nearest_i2, nearest_j2 = int(nearest_i), min(int(nearest_j) + 1, width)
-                resized_image_matrix[i, j] = interpolate_pixel(resize_img_matrix, [[nearest_i1, nearest_j1],
-                                                                                   [nearest_i2, nearest_j2],
-                                                                                   [nearest_i1, nearest_j]], axis=1)
+                i1, j1 = int(nearest_i), int(nearest_j)
+                i2, j2 = int(nearest_i), min(int(nearest_j) + 1, width)
+                resized_image_matrix[i, j] = interpolate_pixel(resize_img_matrix, [[i1, j1],
+                                                                                   [i2, j2],
+                                                                                   [i1, nearest_j]], axis=1)
             elif nearest_j == int(nearest_j):
-                nearest_i1, nearest_j1 = int(nearest_i), int(nearest_j)
-                nearest_i2, nearest_j2 = min(int(nearest_i) + 1, height-1), int(nearest_j)
-                resized_image_matrix[i, j] = interpolate_pixel(resize_img_matrix, [[nearest_i1, nearest_j1],
-                                                                                   [nearest_i2, nearest_j2],
+                i1, j1 = int(nearest_i), int(nearest_j)
+                i2, j2 = min(int(nearest_i) + 1, height-1), int(nearest_j)
+                resized_image_matrix[i, j] = interpolate_pixel(resize_img_matrix, [[i1, j1],
+                                                                                   [i2, j2],
                                                                                    [nearest_i, nearest_j]], axis=0)
             else:
-                nearest_i1, nearest_j1 = int(nearest_i), int(nearest_j)
-                nearest_i2, nearest_j2 = int(nearest_i), min(int(nearest_j1) + 1, width - 1)
-                nearest_i3, nearest_j3 = min(int(nearest_i) + 1, height - 1), int(nearest_j)
-                nearest_i4, nearest_j4 = min(int(nearest_i) + 1, height - 1), min(int(nearest_j) + 1, width - 1)
+                i1, j1 = int(nearest_i), int(nearest_j)
+                i2, j2 = int(nearest_i), min(int(j1) + 1, width - 1)
+                i3, j3 = min(int(nearest_i) + 1, height - 1), int(nearest_j)
+                i4, j4 = min(int(nearest_i) + 1, height - 1), min(int(nearest_j) + 1, width - 1)
 
-                pixel_ij1 = interpolate_pixel(resize_img_matrix, [[nearest_i1, nearest_j1],
-                                                                  [nearest_i2, nearest_j2],
-                                                                  [nearest_i1, nearest_j]], axis=1)
-                pixel_ij2 = interpolate_pixel(resize_img_matrix, [[nearest_i3, nearest_j3],
-                                                                  [nearest_i4, nearest_j4],
-                                                                  [nearest_i3, nearest_j]], axis=1)
+                pixel_ij1 = interpolate_pixel(resize_img_matrix, [[i1, j1],
+                                                                  [i2, j2],
+                                                                  [i1, nearest_j]], axis=1)
+                pixel_ij2 = interpolate_pixel(resize_img_matrix, [[i3, j3],
+                                                                  [i4, j4],
+                                                                  [i3, nearest_j]], axis=1)
 
-                dy1, dy2 = nearest_i - nearest_i1, nearest_i3 - nearest_i
+                dy1, dy2 = nearest_i - i1, i3 - nearest_i
                 resized_image_matrix[i, j] = pixel_ij1 * dy2 + pixel_ij2 * dy1
 
     new_image = Image.fromarray(resized_image_matrix)
-    # """  -- Plot Images using PIL -- """
-    # concatenated_image = Image.new("RGB", (new_width + width + 30, height + 20))
-    #
-    # if new_height > height:
-    #     concatenated_image = Image.new("RGB", (new_width + width + 30, new_height + 20))
-    #
-    # concatenated_image.paste(image_to_resize, (10, 10))
-    # concatenated_image.paste(new_image, (width + 20, 10))
 
-    # concatenated_image.show()
+    # """  -- Plot Images using PIL -- """
+    # # concatenated_image = Image.new("RGB", (new_width + width + 30, height + 20))
+    # #
+    # # if new_height > height:
+    # #     concatenated_image = Image.new("RGB", (new_width + width + 30, new_height + 20))
+    # #
+    # # concatenated_image.paste(image_to_resize, (10, 10))
+    # # concatenated_image.paste(new_image, (width + 20, 10))
+    # #
+    # # concatenated_image.show()
 
     return new_image
 
@@ -197,11 +203,11 @@ def crop_image(image_to_crop, x, y, width, height):
         return
 
 
-def rotation_image(image_to_rotate, degree):
+def rotate_image(image_to_rotate, degree):
     if degree == 0:
         create_header("ROTATE", os.path.basename(image_to_rotate.filename), str(image_to_rotate.size[0]),
                       str(image_to_rotate.size[1]))
-        degree = input("\nEnter with an angle (in degree) of rotation >>> ")
+        degree = input("\nEnter with an angle (in degree) to rotate >>> ")
 
     rads = math.radians(float(degree))
     image_matrix = np.array(image_to_rotate)
@@ -313,9 +319,6 @@ def search_images_name():
     print('__________________________________________________________________\n')
 
     return search_images_folder
-# def update_action():
-#     print("Performing update...")
-#     input("Press Enter to continue...")
 
 
 def show_help():
@@ -332,7 +335,7 @@ def show_help():
     print("EXIT        |   Close the program                                |")
     print('---------------------------------------------------------------------------------------------------------\n')
 
-    input("Press Enter to continue... ")
+    input("Press Enter to back... ")
 
 
 if __name__ == '__main__':
